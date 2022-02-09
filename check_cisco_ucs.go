@@ -463,7 +463,13 @@ func main() {
 	resp, err := client.Post(url, "text/xml", data)
 
 	if err != nil {
-		log.Fatal(err)
+		debugPrintf(3, "login error: %s\n", err.Error())
+		if strings.Contains(err.Error(), "EOF") {
+			fmt.Printf("CRIT: EOF received from the target system.\n")
+		} else {
+			fmt.Printf("CRIT: %v\n", err)
+		}
+		os.Exit(3)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -476,7 +482,11 @@ func main() {
 	err = xml.Unmarshal([]byte(body), &xmlAaaLoginResp)
 
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		if strings.Contains(err.Error(), "EOF") {
+			fmt.Printf("CRIT: EOF received from the target system. Check if CIMC interface is working.\n")
+		} else {
+			fmt.Printf("CRIT: %v\n", err)
+		}
 		os.Exit(3)
 	}
 
